@@ -49,12 +49,8 @@ class Umaten_Toppage_View_Counter {
             return;
         }
 
-        // ボット・クローラーを除外
-        if ($this->is_bot()) {
-            return;
-        }
-
         // 管理者を除外（オプション）
+        // 注: ボット・クローラーも含めてすべてのアクセスをカウント
         if (current_user_can('manage_options')) {
             return;
         }
@@ -62,6 +58,11 @@ class Umaten_Toppage_View_Counter {
         $post_id = $post->ID;
         $this->increment_view_count($post_id);
         $this->update_daily_stats();
+
+        // ボットかどうかを判定して別途記録
+        if ($this->is_bot()) {
+            $this->increment_bot_count($post_id);
+        }
     }
 
     /**
@@ -75,6 +76,16 @@ class Umaten_Toppage_View_Counter {
 
         // 最終閲覧日時を記録
         update_post_meta($post_id, 'post_last_viewed', current_time('mysql'));
+    }
+
+    /**
+     * ボットビューカウントを増やす
+     */
+    private function increment_bot_count($post_id) {
+        $count = get_post_meta($post_id, 'post_bot_views_count', true);
+        $count = empty($count) ? 0 : intval($count);
+        $count++;
+        update_post_meta($post_id, 'post_bot_views_count', $count);
     }
 
     /**
@@ -178,6 +189,28 @@ class Umaten_Toppage_View_Counter {
     }
 
     /**
+     * ボットの総アクセス数を取得
+     */
+    public function get_total_bot_views() {
+        global $wpdb;
+
+        $total = $wpdb->get_var(
+            "SELECT SUM(meta_value)
+             FROM {$wpdb->postmeta}
+             WHERE meta_key = 'post_bot_views_count'"
+        );
+
+        return intval($total);
+    }
+
+    /**
+     * 人間のアクセス数を取得（総アクセス - ボット）
+     */
+    public function get_human_views() {
+        return $this->get_total_views() - $this->get_total_bot_views();
+    }
+
+    /**
      * ボット・クローラーかどうかを判定
      */
     private function is_bot() {
@@ -219,6 +252,12 @@ class Umaten_Toppage_View_Counter {
             'callback' => array($this, 'rest_get_today_views'),
             'permission_callback' => '__return_true'
         ));
+
+        register_rest_route('umaten/v1', '/views/stats', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'rest_get_view_stats'),
+            'permission_callback' => '__return_true'
+        ));
     }
 
     /**
@@ -238,6 +277,27 @@ class Umaten_Toppage_View_Counter {
         return array(
             'today_views' => $this->get_today_views(),
             'date' => date('Y-m-d')
+        );
+    }
+
+    /**
+     * REST API: 詳細統計情報
+     */
+    public function rest_get_view_stats() {
+        $total_views = $this->get_total_views();
+        $bot_views = $this->get_total_bot_views();
+        $human_views = $total_views - $bot_views;
+        $monthly_views = $this->get_monthly_views();
+        $today_views = $this->get_today_views();
+
+        return array(
+            'total_views' => $total_views,
+            'bot_views' => $bot_views,
+            'human_views' => $human_views,
+            'bot_percentage' => $total_views > 0 ? round(($bot_views / $total_views) * 100, 2) : 0,
+            'monthly_views' => $monthly_views,
+            'today_views' => $today_views,
+            'note' => 'ボット・クローラーを含むすべてのアクセスを記録'
         );
     }
 }
