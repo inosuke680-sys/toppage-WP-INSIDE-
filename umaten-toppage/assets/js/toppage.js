@@ -12,6 +12,7 @@
          * 初期化
          */
         init: function() {
+            console.log('Umaten Toppage initialized');
             this.loadAreaSettings();
             this.bindEvents();
         },
@@ -31,7 +32,7 @@
             // モーダル外側クリックで閉じる
             $(document).on('click', '.umaten-modal', function(e) {
                 if ($(e.target).hasClass('umaten-modal')) {
-                    self.closeModal($(this).attr('id'));
+                    self.closeModal('#' + $(this).attr('id'));
                 }
             });
 
@@ -41,6 +42,17 @@
                     self.closeModal('#child-category-modal');
                     self.closeModal('#tag-modal');
                 }
+            });
+
+            // 子カテゴリカードのクリックイベント（委譲）
+            $(document).on('click', '.child-category-item', function(e) {
+                e.preventDefault();
+                console.log('子カテゴリがクリックされました:', $(this).data('child-slug'));
+                self.currentChildSlug = $(this).data('child-slug');
+                self.closeModal('#child-category-modal');
+                setTimeout(function() {
+                    self.loadTags();
+                }, 300);
             });
         },
 
@@ -85,14 +97,13 @@
 
             $.each(areas, function(areaKey, areaData) {
                 if (areaData.status === 'hidden') {
-                    return; // 非表示の場合はスキップ
+                    return;
                 }
 
                 const isComingSoon = areaData.status === 'coming_soon';
                 const isPublished = areaData.status === 'published';
                 const comingSoonText = isComingSoon ? ' <span style="font-size: 11px; opacity: 0.8;">（準備中）</span>' : '';
 
-                // タブボタンを作成
                 const $tab = $('<a>')
                     .attr('href', '#')
                     .addClass('meshimap-area-tab')
@@ -110,7 +121,6 @@
 
                 $tabsContainer.append($tab);
 
-                // コンテンツエリアを作成
                 const $content = $('<div>')
                     .addClass('meshimap-area-content')
                     .attr('id', 'area-' + areaKey);
@@ -120,7 +130,6 @@
                 }
 
                 if (isComingSoon) {
-                    // 準備中メッセージ
                     $content.html(`
                         <div class="meshimap-coming-soon">
                             <div class="meshimap-coming-soon-icon">&#128679;</div>
@@ -132,12 +141,11 @@
                         </div>
                     `);
                 } else if (isPublished) {
-                    // 北海道の場合はカードを表示
                     if (areaKey === 'hokkaido') {
                         const defaultImage = 'https://umaten.jp/wp-content/uploads/2025/11/fuji-san-pagoda-view.webp';
                         $content.html(`
                             <div class="meshimap-category-grid">
-                                <a href="#" class="meshimap-category-card" data-parent-slug="${areaKey}">
+                                <a href="#" class="meshimap-category-card parent-category-card" data-parent-slug="${areaKey}">
                                     <img src="${defaultImage}" alt="${areaData.label}" class="meshimap-category-image">
                                     <div class="meshimap-category-overlay">
                                         <div class="meshimap-category-name">${areaData.label}</div>
@@ -156,22 +164,21 @@
                 e.preventDefault();
 
                 if ($(this).hasClass('coming-soon')) {
-                    return; // 準備中の場合は何もしない
+                    return;
                 }
 
-                // アクティブクラスの切り替え
                 $('.meshimap-area-tab').removeClass('active');
                 $(this).addClass('active');
 
-                // コンテンツの切り替え
                 const targetArea = $(this).data('area');
                 $('.meshimap-area-content').removeClass('active');
                 $('#area-' + targetArea).addClass('active');
             });
 
-            // カテゴリカードクリックイベント
-            $contentContainer.on('click', '.meshimap-category-card', function(e) {
+            // 親カテゴリカードクリックイベント
+            $(document).on('click', '.parent-category-card', function(e) {
                 e.preventDefault();
+                console.log('親カテゴリがクリックされました');
                 const parentSlug = $(this).data('parent-slug');
                 self.loadChildCategories(parentSlug);
             });
@@ -183,11 +190,10 @@
         loadChildCategories: function(parentSlug) {
             const self = this;
             self.currentParentSlug = parentSlug;
+            console.log('子カテゴリを読み込み中:', parentSlug);
 
-            // モーダルを表示
             self.openModal('#child-category-modal');
 
-            // ローディング表示
             $('#child-categories-grid').html(`
                 <div class="umaten-loading">
                     <div class="umaten-spinner"></div>
@@ -204,6 +210,7 @@
                     parent_slug: parentSlug
                 },
                 success: function(response) {
+                    console.log('子カテゴリ取得成功:', response);
                     if (response.success) {
                         const categories = response.data.categories;
                         const parentName = response.data.parent_name;
@@ -234,7 +241,7 @@
         },
 
         /**
-         * 子カテゴリをレンダリング
+         * 子カテゴリをレンダリング（画像なし、テキストのみ）
          */
         renderChildCategories: function(categories) {
             const self = this;
@@ -252,27 +259,20 @@
                 return;
             }
 
+            // グリッドスタイルを変更（画像なしバージョン）
+            $grid.removeClass('meshimap-category-grid').addClass('meshimap-tags-grid');
+
             $.each(categories, function(index, category) {
-                const $card = $('<a>')
+                const $item = $('<a>')
                     .attr('href', '#')
-                    .addClass('meshimap-category-card')
+                    .addClass('meshimap-tag-item child-category-item')
                     .attr('data-child-slug', category.slug)
-                    .html(`
-                        <img src="${category.thumbnail}" alt="${category.name}" class="meshimap-category-image">
-                        <div class="meshimap-category-overlay">
-                            <div class="meshimap-category-name">${category.name}</div>
-                        </div>
-                    `);
+                    .html(`📍 ${category.name}`);
 
-                $card.on('click', function(e) {
-                    e.preventDefault();
-                    self.currentChildSlug = category.slug;
-                    self.closeModal('#child-category-modal');
-                    self.loadTags();
-                });
-
-                $grid.append($card);
+                $grid.append($item);
             });
+
+            console.log('子カテゴリを', categories.length, '件レンダリングしました');
         },
 
         /**
@@ -280,11 +280,10 @@
          */
         loadTags: function() {
             const self = this;
+            console.log('タグを読み込み中');
 
-            // タグモーダルを表示
             self.openModal('#tag-modal');
 
-            // ローディング表示
             $('#tags-grid').html(`
                 <div class="umaten-loading">
                     <div class="umaten-spinner"></div>
@@ -300,6 +299,7 @@
                     nonce: umatenToppage.nonce
                 },
                 success: function(response) {
+                    console.log('タグ取得成功:', response);
                     if (response.success) {
                         const tags = response.data.tags;
                         $('#tag-modal-title').text('ジャンルを選択');
@@ -355,12 +355,14 @@
 
                 $tagItem.on('click', function(e) {
                     e.preventDefault();
-                    const tagSlug = tag.slug;
-                    self.navigateToFinalUrl(tagSlug);
+                    console.log('タグがクリックされました:', tag.slug);
+                    self.navigateToFinalUrl(tag.slug);
                 });
 
                 $grid.append($tagItem);
             });
+
+            console.log('タグを', tags.length, '件レンダリングしました');
         },
 
         /**
@@ -369,13 +371,12 @@
         navigateToFinalUrl: function(tagSlug) {
             const self = this;
 
-            // URL形式: umaten.jp/hokkaido/子カテゴリ/ジャンル/
             const finalUrl = umatenToppage.siteUrl + '/' +
                              self.currentParentSlug + '/' +
                              self.currentChildSlug + '/' +
                              tagSlug + '/';
 
-            // URLに遷移
+            console.log('最終URLに遷移:', finalUrl);
             window.location.href = finalUrl;
         },
 
@@ -383,7 +384,8 @@
          * モーダルを開く
          */
         openModal: function(modalId) {
-            $(modalId).addClass('active');
+            console.log('モーダルを開く:', modalId);
+            $(modalId).addClass('active').css('display', 'flex');
             $('body').css('overflow', 'hidden');
         },
 
@@ -391,7 +393,8 @@
          * モーダルを閉じる
          */
         closeModal: function(modalId) {
-            $(modalId).removeClass('active');
+            console.log('モーダルを閉じる:', modalId);
+            $(modalId).removeClass('active').css('display', 'none');
             $('body').css('overflow', 'auto');
         }
     };
