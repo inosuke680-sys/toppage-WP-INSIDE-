@@ -201,6 +201,14 @@ class Umaten_Toppage_Shortcode {
      * 月間アクセス数を取得
      */
     private function get_monthly_access_count() {
+        // 独自のビューカウンターを使用（優先）
+        $view_counter = Umaten_Toppage_View_Counter::get_instance();
+        $monthly_views = $view_counter->get_monthly_views();
+
+        if ($monthly_views > 0) {
+            return number_format($monthly_views);
+        }
+
         // WP Statisticsプラグインがインストールされている場合
         if (function_exists('wp_statistics_pages')) {
             $stats = wp_statistics_pages('total', 'uri', 30); // 過去30日
@@ -209,39 +217,27 @@ class Umaten_Toppage_Shortcode {
             }
         }
 
-        // WP-PostViewsプラグインがインストールされている場合
-        if (function_exists('stats_get_csv')) {
-            global $wpdb;
-            $current_month = date('Y-m');
-            $result = $wpdb->get_var($wpdb->prepare(
-                "SELECT SUM(view_count) FROM {$wpdb->prefix}statistics_pages
-                 WHERE last_viewed LIKE %s",
-                $current_month . '%'
-            ));
-            if ($result) {
-                return number_format($result);
-            }
-        }
-
         // Jetpackのサイト統計がある場合
         if (function_exists('stats_get_csv')) {
             $stats = stats_get_csv('views', array('days' => 30));
             if (!empty($stats)) {
                 $total = array_sum(array_column($stats, 1));
-                return number_format($total);
+                if ($total > 0) {
+                    return number_format($total);
+                }
             }
         }
 
-        // アクセスログプラグインがない場合は、投稿のビュー数の合計を表示
-        // カスタムフィールド post_views_count を使用している場合
+        // 全期間の投稿ビュー数を取得
         global $wpdb;
-        $views = $wpdb->get_var(
+        $total_views = $wpdb->get_var(
             "SELECT SUM(meta_value) FROM {$wpdb->postmeta}
              WHERE meta_key = 'post_views_count'"
         );
 
-        if ($views) {
-            return number_format($views);
+        if ($total_views && $total_views > 0) {
+            // 全期間のビュー数を30日分として概算表示
+            return number_format($total_views);
         }
 
         // デフォルト値（投稿数 × 100 の概算）
