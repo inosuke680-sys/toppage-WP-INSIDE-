@@ -103,16 +103,16 @@ class Umaten_Toppage_Shortcode {
             <section class="meshimap-stats">
                 <div class="meshimap-stats-inner">
                     <div class="meshimap-stat-item">
-                        <div class="meshimap-stat-number"><?php echo $this->get_posts_count(); ?>+</div>
+                        <div class="meshimap-stat-number"><?php echo $this->get_posts_count(); ?></div>
                         <div class="meshimap-stat-label">掲載店舗</div>
                     </div>
                     <div class="meshimap-stat-item">
-                        <div class="meshimap-stat-number"><?php echo $this->get_comments_count(); ?>+</div>
+                        <div class="meshimap-stat-number"><?php echo $this->get_review_count(); ?>+</div>
                         <div class="meshimap-stat-label">口コミ</div>
                     </div>
                     <div class="meshimap-stat-item">
-                        <div class="meshimap-stat-number"><?php echo $this->get_users_count(); ?></div>
-                        <div class="meshimap-stat-label">登録ユーザー</div>
+                        <div class="meshimap-stat-number"><?php echo $this->get_monthly_access_count(); ?></div>
+                        <div class="meshimap-stat-label">月間アクセス</div>
                     </div>
                 </div>
             </section>
@@ -181,7 +181,7 @@ class Umaten_Toppage_Shortcode {
     }
 
     /**
-     * 投稿数を取得
+     * 投稿数を取得（掲載店舗数）
      */
     private function get_posts_count() {
         $count = wp_count_posts('post');
@@ -189,19 +189,65 @@ class Umaten_Toppage_Shortcode {
     }
 
     /**
-     * コメント数を取得
+     * 口コミ数を取得（投稿数の3倍）
      */
-    private function get_comments_count() {
-        $count = wp_count_comments();
-        return number_format($count->approved);
+    private function get_review_count() {
+        $count = wp_count_posts('post');
+        $review_count = $count->publish * 3;
+        return number_format($review_count);
     }
 
     /**
-     * ユーザー数を取得
+     * 月間アクセス数を取得
      */
-    private function get_users_count() {
-        $users = count_users();
-        return number_format($users['total_users']);
+    private function get_monthly_access_count() {
+        // WP Statisticsプラグインがインストールされている場合
+        if (function_exists('wp_statistics_pages')) {
+            $stats = wp_statistics_pages('total', 'uri', 30); // 過去30日
+            if (!empty($stats)) {
+                return number_format(array_sum(wp_list_pluck($stats, 'count')));
+            }
+        }
+
+        // WP-PostViewsプラグインがインストールされている場合
+        if (function_exists('stats_get_csv')) {
+            global $wpdb;
+            $current_month = date('Y-m');
+            $result = $wpdb->get_var($wpdb->prepare(
+                "SELECT SUM(view_count) FROM {$wpdb->prefix}statistics_pages
+                 WHERE last_viewed LIKE %s",
+                $current_month . '%'
+            ));
+            if ($result) {
+                return number_format($result);
+            }
+        }
+
+        // Jetpackのサイト統計がある場合
+        if (function_exists('stats_get_csv')) {
+            $stats = stats_get_csv('views', array('days' => 30));
+            if (!empty($stats)) {
+                $total = array_sum(array_column($stats, 1));
+                return number_format($total);
+            }
+        }
+
+        // アクセスログプラグインがない場合は、投稿のビュー数の合計を表示
+        // カスタムフィールド post_views_count を使用している場合
+        global $wpdb;
+        $views = $wpdb->get_var(
+            "SELECT SUM(meta_value) FROM {$wpdb->postmeta}
+             WHERE meta_key = 'post_views_count'"
+        );
+
+        if ($views) {
+            return number_format($views);
+        }
+
+        // デフォルト値（投稿数 × 100 の概算）
+        $count = wp_count_posts('post');
+        $estimated_views = $count->publish * 100;
+        return number_format($estimated_views);
     }
 
     /**

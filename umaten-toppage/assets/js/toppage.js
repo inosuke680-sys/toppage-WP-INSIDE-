@@ -346,6 +346,27 @@
                 return;
             }
 
+            // 「すべてのジャンル」ボタンを最初に追加
+            const $allGenresItem = $('<a>')
+                .attr('href', '#')
+                .addClass('meshimap-tag-item meshimap-tag-item-all')
+                .html('🍴 すべてのジャンル')
+                .attr('data-tag-slug', '');
+
+            $allGenresItem.on('click', function(e) {
+                e.preventDefault();
+                console.log('すべてのジャンルがクリックされました');
+                // タグなしのURL: /hokkaido/子カテゴリ/
+                const finalUrl = umatenToppage.siteUrl + '/' +
+                                 self.currentParentSlug + '/' +
+                                 self.currentChildSlug + '/';
+                console.log('最終URLに遷移:', finalUrl);
+                window.location.href = finalUrl;
+            });
+
+            $grid.append($allGenresItem);
+
+            // 各ジャンルを追加
             $.each(tags, function(index, tag) {
                 const $tagItem = $('<a>')
                     .attr('href', '#')
@@ -362,7 +383,7 @@
                 $grid.append($tagItem);
             });
 
-            console.log('タグを', tags.length, '件レンダリングしました');
+            console.log('タグを', tags.length, '件レンダリングしました（すべてのジャンルを含む）');
         },
 
         /**

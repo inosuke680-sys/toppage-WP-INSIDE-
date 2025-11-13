@@ -570,6 +570,22 @@ aside {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* すべてのジャンルボタン */
+.meshimap-tag-item-all {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+    font-weight: 900;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.meshimap-tag-item-all:hover {
+    background: linear-gradient(135deg, #5568d3, #63398b);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
 /* ローディングスピナー */
 .umaten-loading {
     text-align: center;
