@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Umaten トップページ
  * Plugin URI: https://umaten.jp
- * Description: 動的なカテゴリ・タグ表示を備えたトップページ用プラグイン。北海道ナビゲーションの最適化対応。独自アクセスカウント機能搭載。
- * Version: 1.2.0
+ * Description: 動的なカテゴリ・タグ表示を備えたトップページ用プラグイン。全エリア対応の3ステップナビゲーション（親→子カテゴリ→ジャンル）。独自アクセスカウント機能搭載。
+ * Version: 1.4.0
  * Author: Umaten
  * Author URI: https://umaten.jp
  * License: GPL v2 or later
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('UMATEN_TOPPAGE_VERSION', '1.2.0');
+define('UMATEN_TOPPAGE_VERSION', '1.4.0');
 define('UMATEN_TOPPAGE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('UMATEN_TOPPAGE_PLUGIN_URL', plugin_dir_url(__FILE__));
 

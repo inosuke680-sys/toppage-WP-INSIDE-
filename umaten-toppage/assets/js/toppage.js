@@ -141,19 +141,18 @@
                         </div>
                     `);
                 } else if (isPublished) {
-                    if (areaKey === 'hokkaido') {
-                        const defaultImage = 'https://umaten.jp/wp-content/uploads/2025/11/fuji-san-pagoda-view.webp';
-                        $content.html(`
-                            <div class="meshimap-category-grid">
-                                <a href="#" class="meshimap-category-card parent-category-card" data-parent-slug="${areaKey}">
-                                    <img src="${defaultImage}" alt="${areaData.label}" class="meshimap-category-image">
-                                    <div class="meshimap-category-overlay">
-                                        <div class="meshimap-category-name">${areaData.label}</div>
-                                    </div>
-                                </a>
-                            </div>
-                        `);
-                    }
+                    // すべての公開エリアで親カテゴリカードを表示（北海道方式を全エリアに適用）
+                    const defaultImage = 'https://umaten.jp/wp-content/uploads/2025/11/fuji-san-pagoda-view.webp';
+                    $content.html(`
+                        <div class="meshimap-category-grid">
+                            <a href="#" class="meshimap-category-card parent-category-card" data-parent-slug="${areaKey}">
+                                <img src="${defaultImage}" alt="${areaData.label}" class="meshimap-category-image">
+                                <div class="meshimap-category-overlay">
+                                    <div class="meshimap-category-name">${areaData.label}</div>
+                                </div>
+                            </a>
+                        </div>
+                    `);
                 }
 
                 $contentContainer.append($content);
