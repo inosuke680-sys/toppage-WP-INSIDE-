@@ -272,17 +272,22 @@ https://umaten.jp/hokkaido/hakodate/sushi/
 ### ファイル構成
 ```
 umaten-toppage/
-├── umaten-toppage.php          # メインファイル
+├── umaten-toppage.php                 # メインファイル
 ├── includes/
-│   ├── class-admin-settings.php # 管理画面
-│   ├── class-ajax-handler.php   # AJAX処理
-│   └── class-shortcode.php      # ショートコード
+│   ├── class-admin-settings.php       # 管理画面
+│   ├── class-ajax-handler.php         # AJAX処理
+│   ├── class-shortcode.php            # ショートコード
+│   ├── class-view-counter.php         # アクセスカウント
+│   ├── class-search-results.php       # 検索結果ページ
+│   ├── class-url-rewrite.php          # URLリライトルール (v1.5.0)
+│   ├── class-seo-meta.php             # SEOメタタグ生成 (v1.5.0)
+│   └── class-auto-featured-image.php  # アイキャッチ画像自動設定 (v1.5.0)
 ├── assets/
 │   ├── css/
-│   │   └── toppage.css          # スタイルシート
+│   │   └── toppage.css                # スタイルシート
 │   └── js/
-│       └── toppage.js           # JavaScript
-└── README.md                    # このファイル
+│       └── toppage.js                 # JavaScript
+└── README.md                          # このファイル
 ```
 
 ## ライセンス
@@ -295,6 +300,25 @@ Umaten
 https://umaten.jp
 
 ## バージョン履歴
+
+### 1.5.0 (2025-11-14)
+- **重要**: URLリライトルール実装
+  - `/親カテゴリ/子カテゴリ/タグ/` 形式のURLを正式サポート
+  - WordPressのクエリシステムと完全統合
+  - 404エラーの自動検出と処理
+- **新機能**: SEOメタタグ自動生成
+  - カテゴリ/タグページのディスクリプション自動生成
+  - OGP (Open Graph Protocol) 完全対応
+  - Twitter Card対応
+  - SNS共有時の画像とタイトルを自動設定
+- **新機能**: アイキャッチ画像自動設定
+  - 投稿内の `restaurant-hero-image` クラスを自動検出
+  - Lazy Load画像（`ls-is-cached lazyloaded`）対応
+  - アイキャッチ未設定の投稿に自動設定
+  - OGP画像としても使用
+- **改善**: 検索結果ページとURLリライトの統合
+- **修正**: カテゴリ/タグページのSEO要素消失問題を解決
+- **修正**: 記事へのリンク問題を解決
 
 ### 1.4.1 (2025-11-14)
 - **新機能**: 検索結果ページ実装

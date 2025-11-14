@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Umaten トップページ
  * Plugin URI: https://umaten.jp
- * Description: 動的なカテゴリ・タグ表示を備えたトップページ用プラグイン。全エリア対応の3ステップナビゲーション（親→子カテゴリ→ジャンル）。検索結果ページ対応。独自アクセスカウント機能搭載。
- * Version: 1.4.1
+ * Description: 動的なカテゴリ・タグ表示を備えたトップページ用プラグイン。全エリア対応の3ステップナビゲーション（親→子カテゴリ→ジャンル）。SEO最適化。アイキャッチ画像自動設定。検索結果ページ対応。独自アクセスカウント機能搭載。
+ * Version: 1.5.0
  * Author: Umaten
  * Author URI: https://umaten.jp
  * License: GPL v2 or later
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // プラグインの定数定義
-define('UMATEN_TOPPAGE_VERSION', '1.4.1');
+define('UMATEN_TOPPAGE_VERSION', '1.5.0');
 define('UMATEN_TOPPAGE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('UMATEN_TOPPAGE_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -58,6 +58,9 @@ class Umaten_Toppage_Plugin {
         require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-shortcode.php';
         require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-view-counter.php';
         require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-search-results.php';
+        require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-url-rewrite.php';
+        require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-seo-meta.php';
+        require_once UMATEN_TOPPAGE_PLUGIN_DIR . 'includes/class-auto-featured-image.php';
     }
 
     /**
@@ -94,6 +97,15 @@ class Umaten_Toppage_Plugin {
 
         // ビューカウンターの初期化
         Umaten_Toppage_View_Counter::get_instance();
+
+        // URLリライトの初期化
+        Umaten_Toppage_URL_Rewrite::get_instance();
+
+        // SEOメタタグの初期化
+        Umaten_Toppage_SEO_Meta::get_instance();
+
+        // アイキャッチ画像自動設定の初期化
+        Umaten_Toppage_Auto_Featured_Image::get_instance();
     }
 
     /**
@@ -140,6 +152,9 @@ class Umaten_Toppage_Plugin {
         if (!get_option('umaten_toppage_area_settings')) {
             update_option('umaten_toppage_area_settings', $default_settings);
         }
+
+        // リライトルールをフラッシュ
+        Umaten_Toppage_URL_Rewrite::flush_rewrite_rules();
     }
 
     /**

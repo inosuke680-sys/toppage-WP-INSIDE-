@@ -46,16 +46,36 @@ class Umaten_Toppage_Search_Results {
             'order' => 'DESC'
         ), $atts);
 
-        // URLパスを解析
-        $path_info = $this->parse_url_path();
+        // URLリライトからの情報を取得
+        $parent_term = get_query_var('umaten_parent_term');
+        $child_term = get_query_var('umaten_child_term');
+        $tag_term = get_query_var('umaten_tag_term');
 
-        if (!$path_info) {
-            return $this->render_no_results('URLが正しくありません。');
+        // URLリライトからの情報があればそれを使用
+        if ($parent_term || $child_term || $tag_term) {
+            $path_info = array(
+                'parent_slug' => $parent_term ? $parent_term->slug : '',
+                'child_slug' => $child_term ? $child_term->slug : '',
+                'tag_slug' => $tag_term ? $tag_term->slug : '',
+                'parent_term' => $parent_term,
+                'child_term' => $child_term,
+                'tag_term' => $tag_term
+            );
+            // グローバルクエリを使用
+            global $wp_query;
+            $query = $wp_query;
+        } else {
+            // URLパスを解析（通常のショートコード使用時）
+            $path_info = $this->parse_url_path();
+
+            if (!$path_info) {
+                return $this->render_no_results('URLが正しくありません。');
+            }
+
+            // 投稿を取得
+            $query_args = $this->build_query_args($path_info, $atts);
+            $query = new WP_Query($query_args);
         }
-
-        // 投稿を取得
-        $query_args = $this->build_query_args($path_info, $atts);
-        $query = new WP_Query($query_args);
 
         ob_start();
         ?>
