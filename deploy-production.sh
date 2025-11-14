@@ -1,19 +1,19 @@
 #!/bin/bash
-# v2.4.0 本番環境デプロイスクリプト（緊急修正版）
+# v2.5.0 本番環境デプロイスクリプト（REST API対応版）
 # GitHubから一時ディレクトリにクローンして本番環境に反映
 
 set -e  # エラーが発生したら即座に終了
 
 echo "=========================================="
-echo "  Umaten トップページ v2.4.0 デプロイ"
-echo "  【緊急修正版】"
+echo "  Umaten トップページ v2.5.0 デプロイ"
+echo "  【REST API対応版】"
 echo "=========================================="
 echo ""
 
 # 設定
 BRANCH="claude/optimize-hokkaido-navigation-011CV5rKKYN42TG7uvzSEga4"
 REPO_URL="https://github.com/inosuke680-sys/toppage-WP-INSIDE-.git"
-TEMP_DIR="/tmp/temp-toppage-update-v2.4.0"
+TEMP_DIR="/tmp/temp-toppage-update-v2.5.0"
 PROD_PATH="/home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot/wp-content/plugins/umaten-toppage"
 CACHE_PATH="/home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot/wp-content/cache"
 
@@ -55,7 +55,7 @@ FILES=(
 )
 
 for file in "${FILES[@]}"; do
-    SOURCE="$TEMP_DIR/umaten-toppage-v2.4/$file"
+    SOURCE="$TEMP_DIR/umaten-toppage-v2.5/$file"
     DEST="$PROD_PATH/$file"
 
     if [ -f "$SOURCE" ]; then
@@ -101,14 +101,14 @@ VERSION=$(head -10 "$PROD_PATH/umaten-toppage.php" | grep "Version:" | sed 's/.*
 echo "デプロイされたバージョン: $VERSION"
 echo ""
 
-if [ "$VERSION" == "2.4.0" ]; then
+if [ "$VERSION" == "2.5.0" ]; then
     echo "=========================================="
-    echo "  ✅ デプロイ成功！v2.4.0が反映されました"
-    echo "  【緊急修正版】管理画面セーフ実装"
+    echo "  ✅ デプロイ成功！v2.5.0が反映されました"
+    echo "  【REST API対応版】投稿保存エラー修正"
     echo "=========================================="
 else
     echo "=========================================="
-    echo "  ⚠️  警告: バージョンが2.4.0ではありません"
+    echo "  ⚠️  警告: バージョンが2.5.0ではありません"
     echo "=========================================="
 fi
 
@@ -119,7 +119,13 @@ echo "2. 設定 > パーマリンク設定 を開く"
 echo "3. 何も変更せずに「変更を保存」をクリック（リライトルールのフラッシュ）"
 echo ""
 echo "🔍 動作確認項目："
+echo "- ブロックエディタで投稿を保存できるか（500エラーが出ないか）"
 echo "- 投稿ページが正常に表示されるか（サイドバー含む）"
 echo "- 検索結果ページが正常に動作するか"
 echo "- SEOメタタグが正しく出力されているか"
+echo ""
+echo "🐛 v2.5.0の主な修正内容："
+echo "- REST API経由の投稿保存時の500エラーを修正"
+echo "- AJAX/XMLRPC/Cron/WP-CLIリクエストとの競合を防止"
+echo "- フロントエンドのページリクエストのみで動作"
 echo ""
