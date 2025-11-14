@@ -247,6 +247,8 @@ class Umaten_Toppage_SEO_Meta {
 
         // 基本メタタグ
         echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+        echo '<meta name="robots" content="index, follow">' . "\n";
+        echo '<link rel="canonical" href="' . esc_url($url) . '">' . "\n";
 
         // OGP (Open Graph Protocol)
         echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
@@ -255,6 +257,7 @@ class Umaten_Toppage_SEO_Meta {
         echo '<meta property="og:image" content="' . esc_url($image) . '">' . "\n";
         echo '<meta property="og:type" content="website">' . "\n";
         echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '">' . "\n";
+        echo '<meta property="og:locale" content="ja_JP">' . "\n";
 
         // Twitter Card
         echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
