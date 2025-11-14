@@ -750,3 +750,315 @@ aside {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   検索結果ページスタイル (v1.4.1)
+   ======================================== */
+
+/* パンくずリスト */
+.meshimap-breadcrumbs {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.meshimap-breadcrumbs a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.meshimap-breadcrumbs a:hover {
+    color: #5568d3;
+    text-decoration: underline;
+}
+
+.meshimap-breadcrumbs .separator {
+    margin: 0 8px;
+    color: #ccc;
+}
+
+/* 小さめのヒーローセクション */
+.meshimap-hero-small {
+    height: 350px;
+}
+
+@media (max-width: 768px) {
+    .meshimap-hero-small {
+        height: 250px;
+    }
+}
+
+/* 検索結果ヘッダー */
+.meshimap-results-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.meshimap-results-title {
+    font-size: clamp(24px, 5vw, 36px) !important;
+    font-weight: 900 !important;
+    color: #2c3e50 !important;
+    margin-bottom: 12px !important;
+    padding: 0 !important;
+}
+
+.meshimap-results-title::after,
+.meshimap-results-title::before {
+    display: none !important;
+}
+
+.meshimap-results-count {
+    font-size: clamp(14px, 3vw, 16px);
+    color: #666;
+    font-weight: 500;
+}
+
+/* 投稿グリッド */
+.meshimap-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 60px;
+}
+
+/* 投稿カード */
+.meshimap-post-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.meshimap-post-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.meshimap-post-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.meshimap-post-card-image {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.meshimap-post-card-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+    transition: opacity 0.4s;
+}
+
+.meshimap-post-card:hover .meshimap-post-card-image::before {
+    opacity: 0.7;
+}
+
+.meshimap-post-card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.meshimap-post-card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.meshimap-post-card-title {
+    font-size: clamp(16px, 3.5vw, 18px) !important;
+    font-weight: 700 !important;
+    color: #2c3e50 !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.meshimap-post-card-excerpt {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.meshimap-post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: #999;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.meshimap-post-card-date,
+.meshimap-post-card-views {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.meshimap-post-card-date svg,
+.meshimap-post-card-views svg {
+    opacity: 0.7;
+}
+
+/* ペジネーション */
+.meshimap-pagination {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.meshimap-pagination .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.meshimap-pagination .page-numbers li {
+    display: inline-block;
+}
+
+.meshimap-pagination a,
+.meshimap-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.meshimap-pagination a:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.meshimap-pagination .current {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+}
+
+.meshimap-pagination .dots {
+    border: none;
+    background: transparent;
+}
+
+/* 戻るボタン */
+.meshimap-button {
+    display: inline-block;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 700;
+    margin-top: 20px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.meshimap-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+/* タブレット対応 (検索結果) */
+@media (max-width: 768px) {
+    .meshimap-posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .meshimap-post-card-image {
+        height: 180px;
+    }
+
+    .meshimap-post-card-content {
+        padding: 16px;
+    }
+}
+
+/* スマホ対応 (検索結果) */
+@media (max-width: 640px) {
+    .meshimap-breadcrumbs {
+        font-size: 12px;
+        padding: 12px 15px;
+    }
+
+    .meshimap-posts-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .meshimap-post-card-image {
+        height: 200px;
+    }
+
+    .meshimap-results-header {
+        margin-bottom: 30px;
+    }
+
+    .meshimap-pagination a,
+    .meshimap-pagination span {
+        min-width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+}
