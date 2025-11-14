@@ -1,18 +1,18 @@
 #!/bin/bash
-# v2.1.0 本番環境デプロイスクリプト
+# v2.2.0 本番環境デプロイスクリプト
 # GitHubから一時ディレクトリにクローンして本番環境に反映
 
 set -e  # エラーが発生したら即座に終了
 
 echo "=========================================="
-echo "  Umaten トップページ v2.1.0 デプロイ"
+echo "  Umaten トップページ v2.2.0 デプロイ"
 echo "=========================================="
 echo ""
 
 # 設定
 BRANCH="claude/optimize-hokkaido-navigation-011CV5rKKYN42TG7uvzSEga4"
 REPO_URL="https://github.com/inosuke680-sys/toppage-WP-INSIDE-.git"
-TEMP_DIR="/tmp/temp-toppage-update-v2.1.0"
+TEMP_DIR="/tmp/temp-toppage-update-v2.2.0"
 PROD_PATH="/home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot/wp-content/plugins/umaten-toppage"
 CACHE_PATH="/home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot/wp-content/cache"
 
@@ -54,7 +54,7 @@ FILES=(
 )
 
 for file in "${FILES[@]}"; do
-    SOURCE="$TEMP_DIR/umaten-toppage-v2.1/$file"
+    SOURCE="$TEMP_DIR/umaten-toppage-v2.2/$file"
     DEST="$PROD_PATH/$file"
 
     if [ -f "$SOURCE" ]; then
@@ -100,13 +100,13 @@ VERSION=$(head -10 "$PROD_PATH/umaten-toppage.php" | grep "Version:" | sed 's/.*
 echo "デプロイされたバージョン: $VERSION"
 echo ""
 
-if [ "$VERSION" == "2.1.0" ]; then
+if [ "$VERSION" == "2.2.0" ]; then
     echo "=========================================="
-    echo "  ✅ デプロイ成功！v2.1.0が反映されました"
+    echo "  ✅ デプロイ成功！v2.2.0が反映されました"
     echo "=========================================="
 else
     echo "=========================================="
-    echo "  ⚠️  警告: バージョンが2.1.0ではありません"
+    echo "  ⚠️  警告: バージョンが2.2.0ではありません"
     echo "=========================================="
 fi
 
