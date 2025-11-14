@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ウマ店 - 全国の美味しいお店を探そう｜日本最大級のグルメポータル</title>
+    <style>
+        /* ページ全体の余白をリセット */
+        body.page .l-body,
+        body.single .l-body {
+            padding-top: 0 !important;
+        }
+
+        /* 記事タイトルを非表示 */
+        .p-articleTitle,
+        .article-title,
+        .entry-title,
+        h1.page-title {
+            display: none !important;
+        }
+
+        /* Swellテーマのフルワイド化 */
+        #content,
+        #main,
+        .l-main,
+        .l-mainContent,
+        .l-article,
+        .p-postContent,
+        .post_content,
+        .content_wrap,
+        .article_wrap,
+        .post_body,
+        .entry-content,
+        .swell-block-fullWide {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* コンテナ系の制限解除 */
+        .l-container,
+        .wrap,
+        .alignfull {
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .l-mainContent__inner,
+        .l-article__content,
+        .p-postContent__inner,
+        [class*="l-container"],
+        [class*="l-content"] {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* サイドバーを非表示 */
+        .l-sidebar,
+        #sidebar,
+        aside {
+            display: none !important;
+        }
+
+        /* メインコンテンツを全幅に */
+        .l-mainContent {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* メシマップのスタイル */
+        .meshimap-wrapper {
+            margin: 0 calc(50% - 50vw) 0 calc(50% - 50vw);
+            width: 100vw;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "游ゴシック体", YuGothic, "メイリオ", sans-serif;
+            color: #2c3e50;
+            line-height: 1.6;
+            background: #fff;
+            overflow-x: hidden;
+            position: relative;
+            padding-top: 0;
+        }
+
+        .meshimap-wrapper * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .meshimap-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* アニメーション定義 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* ヒーローセクション */
+        .meshimap-hero {
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .meshimap-hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1553621042-f6e147245754?w=1920') center/cover;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .meshimap-hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            animation: fadeInUp 1s ease-out;
+            padding: 0 15px;
+        }
+
+        .meshimap-hero-title {
+            font-size: clamp(28px, 6vw, 64px);
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            letter-spacing: 0.02em;
+        }
+
+        .meshimap-hero-subtitle {
+            font-size: clamp(14px, 2.5vw, 24px);
+            margin-bottom: 30px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        /* 検索バー */
+        .meshimap-search-wrapper {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            padding: 0 15px;
+        }
+
+        .meshimap-search-form {
+            display: flex;
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .meshimap-search-input {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            font-size: 15px;
+            outline: none;
+            min-width: 0;
+        }
+
+        .meshimap-search-button {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            min-height: 44px;
+        }
+
+        .meshimap-search-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* 統計バー */
+        .meshimap-stats {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 40px 0;
+            color: white;
+        }
+
+        .meshimap-stats-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .meshimap-stat-item {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .meshimap-stat-number {
+            font-size: clamp(36px, 8vw, 48px);
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .meshimap-stat-label {
+            font-size: clamp(14px, 3vw, 16px);
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        /* h要素のリセット */
+        .meshimap-wrapper h1,
+        .meshimap-wrapper h2,
+        .meshimap-wrapper h3,
+        .meshimap-wrapper h4,
+        .meshimap-wrapper h5,
+        .meshimap-wrapper h6 {
+            all: unset !important;
+            display: block !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "游ゴシック体", YuGothic, "メイリオ", sans-serif !important;
+        }
+
+        /* h1独自スタイル */
+        .meshimap-wrapper h1 {
+            font-size: clamp(28px, 6vw, 64px) !important;
+            font-weight: 900 !important;
+            color: white !important;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5) !important;
+            letter-spacing: 0.02em !important;
+            line-height: 1.2 !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* h2独自スタイル */
+        .meshimap-wrapper h2 {
+            margin: 0 0 40px 0 !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.02em !important;
+            line-height: 1.4 !important;
+            text-align: center !important;
+            font-size: clamp(28px, 5vw, 42px) !important;
+            color: #2c3e50 !important;
+            position: relative !important;
+            padding-bottom: 20px !important;
+        }
+
+        .meshimap-wrapper h2::after {
+            content: '' !important;
+            display: block !important;
+            width: 60px !important;
+            height: 4px !important;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e53) !important;
+            margin: 15px auto 0 !important;
+            border-radius: 2px !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+
+        .meshimap-wrapper h2::before {
+            display: none !important;
+            content: none !important;
+        }
+
+        /* h3独自スタイル */
+        .meshimap-wrapper h3 {
+            font-size: clamp(18px, 4vw, 20px) !important;
+            font-weight: 900 !important;
+            color: #2c3e50 !important;
+            line-height: 1.4 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* セクション共通 */
+        .meshimap-section {
+            padding: 60px 0;
+            width: 100%;
+            position: relative;
+        }
+
+        .meshimap-section-gray {
+            background: #f8f9fa;
+        }
+
+        /* カテゴリーカード */
+        .meshimap-category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .meshimap-category-grid-compact {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .meshimap-category-card {
+            position: relative;
+            height: 200px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transition: all 0.4s;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .meshimap-category-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+        }
+
+        .meshimap-category-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+
+        .meshimap-category-card:hover .meshimap-category-image {
+            transform: scale(1.1);
+        }
+
+        .meshimap-category-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 25px 16px 16px;
+            color: white;
+        }
+
+        .meshimap-category-name {
+            font-size: clamp(16px, 3.5vw, 20px);
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .meshimap-category-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* エリア選択 */
+        .meshimap-area-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            padding: 0 10px;
+        }
+
+        .meshimap-area-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #2c3e50;
+            font-size: 14px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .meshimap-area-tab:hover,
+        .meshimap-area-tab.active {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border-color: transparent;
+            transform: scale(1.05);
+        }
+
+        .meshimap-area-tab.coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .meshimap-area-tab.coming-soon:hover {
+            transform: scale(1);
+            background: white;
+            color: #2c3e50;
+            border-color: #e0e0e0;
+        }
+
+        /* エリアコンテンツ - !importantを追加して確実に制御 */
+        .meshimap-wrapper .meshimap-area-content {
+            display: none !important;
+        }
+
+        .meshimap-wrapper .meshimap-area-content.active {
+            display: block !important;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* 準備中メッセージ */
+        .meshimap-coming-soon {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .meshimap-coming-soon-icon {
+            font-size: clamp(48px, 10vw, 64px);
+            margin-bottom: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        .meshimap-coming-soon-title {
+            font-size: clamp(20px, 4vw, 28px) !important;
+            font-weight: 900 !important;
+            color: #2c3e50 !important;
+            margin-bottom: 12px !important;
+        }
+
+        .meshimap-coming-soon-text {
+            font-size: clamp(14px, 3vw, 16px);
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* タブレット対応 (768px以下) */
+        @media (max-width: 768px) {
+            .meshimap-hero {
+                height: 450px;
+            }
+
+            .meshimap-container {
+                padding: 0 15px;
+            }
+
+            .meshimap-section {
+                padding: 40px 0;
+            }
+
+            .meshimap-stats {
+                padding: 30px 0;
+            }
+
+            .meshimap-stats-inner {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .meshimap-category-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .meshimap-category-card {
+                height: 180px;
+            }
+
+            .meshimap-area-tabs {
+                gap: 6px;
+            }
+
+            .meshimap-area-tab {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* スマホ対応 (640px以下) */
+        @media (max-width: 640px) {
+            .meshimap-hero {
+                height: 400px;
+            }
+
+            .meshimap-search-wrapper {
+                padding: 0 10px;
+            }
+
+            .meshimap-search-form {
+                border-radius: 40px;
+            }
+
+            .meshimap-search-input {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+
+            .meshimap-search-button {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
+
+            .meshimap-category-grid {
+                gap: 12px;
+            }
+
+            .meshimap-category-card {
+                height: 160px;
+                border-radius: 12px;
+            }
+
+            .meshimap-wrapper h2 {
+                margin-bottom: 30px !important;
+            }
+        }
+
+        /* 小型スマホ対応 (480px以下) - 都道府県カードの表示を確実に */
+        @media (max-width: 480px) {
+            .meshimap-hero-content {
+                padding: 0 10px;
+            }
+
+            .meshimap-stats-inner {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            /* 都道府県カードを1列表示に変更して確実に表示 */
+            .meshimap-wrapper .meshimap-category-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                display: grid !important;
+            }
+
+            .meshimap-wrapper .meshimap-category-card {
+                height: 200px !important;
+                display: block !important;
+                width: 100% !important;
+            }
+
+            /* エリアタブを見やすく調整 */
+            .meshimap-area-tabs {
+                gap: 8px;
+                padding: 0 5px;
+            }
+
+            .meshimap-area-tab {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-width: 120px;
+            }
+
+            /* 準備中のスパンテキストを調整 */
+            .meshimap-area-tab span {
+                font-size: 10px;
+                margin-left: 4px;
+            }
+
+            .meshimap-coming-soon {
+                padding: 40px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="meshimap-wrapper">
+        <!-- ヒーローセクション -->
+        <section class="meshimap-hero">
+            <div class="meshimap-hero-bg"></div>
+            <div class="meshimap-hero-content">
+                <h1 class="meshimap-hero-title">日本最大級のグルメポータル</h1>
+                <p class="meshimap-hero-subtitle">全国の美味しいお店を探そう</p>
+                <div class="meshimap-search-wrapper">
+                    <form class="meshimap-search-form" method="get" action="/">
+                        <input type="text" class="meshimap-search-input" name="s" placeholder="エリア・駅名・店名・ジャンルで検索" required>
+                        <button type="submit" class="meshimap-search-button">&#128269; 検索する</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- 統計バー -->
+        <section class="meshimap-stats">
+            <div class="meshimap-stats-inner">
+                <div class="meshimap-stat-item">
+                    <div class="meshimap-stat-number">5000+</div>
+                    <div class="meshimap-stat-label">掲載店舗</div>
+                </div>
+                <div class="meshimap-stat-item">
+                    <div class="meshimap-stat-number">15000+</div>
+                    <div class="meshimap-stat-label">口コミ</div>
+                </div>
+                <div class="meshimap-stat-item">
+                    <div class="meshimap-stat-number">0</div>
+                    <div class="meshimap-stat-label">登録ユーザー</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 人気ジャンル -->
+        <section class="meshimap-section" id="genre-section">
+            <div class="meshimap-container">
+                <h2>&#127860; 人気のジャンル</h2>
+                <div class="meshimap-category-grid">
+                    <a href="/ramen/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/ramen-tamago-topping.webp" alt="ラーメン" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">ラーメン</div>
+                        </div>
+                        <div class="meshimap-category-badge">人気No.1</div>
+                    </a>
+                    <a href="/washoku/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/sushi-shoyu-sosu-set.webp" alt="寿司・和食" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">寿司・和食</div>
+                        </div>
+                    </a>
+                    <a href="/italian/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/bbq-tori-pizza.webp" alt="イタリアン" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">イタリアン</div>
+                        </div>
+                    </a>
+                    <a href="/chuka/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/tori-karaage-orenjisarada.webp" alt="中華料理" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">中華料理</div>
+                        </div>
+                    </a>
+                    <a href="/yakiniku/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/indian-thali-meal.webp" alt="焼肉・ステーキ" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">焼肉・ステーキ</div>
+                        </div>
+                    </a>
+                    <a href="/cafe/" class="meshimap-category-card">
+                        <img src="https://umaten.jp/wp-content/uploads/2025/11/cooking-workspace-top-view.webp" alt="カフェ・スイーツ" class="meshimap-category-image">
+                        <div class="meshimap-category-overlay">
+                            <div class="meshimap-category-name">カフェ・スイーツ</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- エリアから探す -->
+        <section class="meshimap-section meshimap-section-gray" id="area-section">
+            <div class="meshimap-container">
+                <h2>&#128205; エリアから探す</h2>
+                <div class="meshimap-area-tabs">
+                    <a href="#" class="meshimap-area-tab active" data-area="hokkaido">北海道</a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="tohoku">東北 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="kanto">関東 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="chubu">中部 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="kansai">関西 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="chugoku">中国 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="shikoku">四国 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                    <a href="#" class="meshimap-area-tab coming-soon" data-area="kyushu-okinawa">九州・沖縄 <span style="font-size: 11px; opacity: 0.8;">（準備中）</span></a>
+                </div>
+
+                <!-- 北海道エリア -->
+                <div class="meshimap-area-content active" id="area-hokkaido">
+                    <div class="meshimap-category-grid">
+                        <a href="/hokkaido/" class="meshimap-category-card">
+                            <img src="https://umaten.jp/wp-content/uploads/2025/11/fuji-san-pagoda-view.webp" alt="北海道" class="meshimap-category-image">
+                            <div class="meshimap-category-overlay">
+                                <div class="meshimap-category-name">北海道</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 東北エリア -->
+                <div class="meshimap-area-content" id="area-tohoku">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">東北エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、東北エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 関東エリア -->
+                <div class="meshimap-area-content" id="area-kanto">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">関東エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、関東エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 中部エリア -->
+                <div class="meshimap-area-content" id="area-chubu">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">中部エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、中部エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 関西エリア -->
+                <div class="meshimap-area-content" id="area-kansai">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">関西エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、関西エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 中国エリア -->
+                <div class="meshimap-area-content" id="area-chugoku">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">中国エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、中国エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 四国エリア -->
+                <div class="meshimap-area-content" id="area-shikoku">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">四国エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、四国エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 九州・沖縄エリア -->
+                <div class="meshimap-area-content" id="area-kyushu-okinawa">
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#128679;</div>
+                        <h3 class="meshimap-coming-soon-title">九州・沖縄エリア 準備中</h3>
+                        <p class="meshimap-coming-soon-text">
+                            現在、九州・沖縄エリアの店舗情報を準備中です。<br>
+                            近日公開予定ですので、今しばらくお待ちください。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // エリアタブ切り替え機能 - WordPress対応版
+        (function() {
+            'use strict';
+
+            // 初期化関数
+            function initAreaTabs() {
+                console.log('エリアタブを初期化中...');
+
+                const areaTabs = document.querySelectorAll('.meshimap-area-tab');
+                const areaContents = document.querySelectorAll('.meshimap-area-content');
+
+                console.log('タブ数:', areaTabs.length, 'コンテンツ数:', areaContents.length);
+
+                // 初期表示: 北海道エリアを確実に表示
+                function showInitialArea() {
+                    // すべてのコンテンツを非表示
+                    areaContents.forEach(content => {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    });
+
+                    // 北海道エリアを表示
+                    const hokkaidoContent = document.getElementById('area-hokkaido');
+                    if (hokkaidoContent) {
+                        hokkaidoContent.classList.add('active');
+                        hokkaidoContent.style.display = 'block';
+                        console.log('北海道エリアを表示しました');
+                    }
+                }
+
+                // 初期表示を実行
+                showInitialArea();
+
+                // タブクリックイベント
+                areaTabs.forEach(tab => {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        // 準備中のタブはクリックできない
+                        if (this.classList.contains('coming-soon')) {
+                            console.log('準備中のエリアがクリックされました');
+                            return;
+                        }
+
+                        console.log('タブがクリックされました:', this.getAttribute('data-area'));
+
+                        // すべてのタブからactiveを削除
+                        areaTabs.forEach(t => t.classList.remove('active'));
+                        // クリックされたタブにactiveを追加
+                        this.classList.add('active');
+
+                        // すべてのコンテンツを非表示
+                        areaContents.forEach(content => {
+                            content.classList.remove('active');
+                            content.style.display = 'none';
+                        });
+
+                        // 対応するコンテンツを表示
+                        const targetArea = this.getAttribute('data-area');
+                        const targetContent = document.getElementById('area-' + targetArea);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                            targetContent.style.display = 'block';
+                            console.log('エリアを表示:', targetArea);
+                        } else {
+                            console.error('エリアコンテンツが見つかりません:', targetArea);
+                        }
+                    });
+                });
+
+                console.log('エリアタブの初期化が完了しました');
+            }
+
+            // DOM読み込み完了後に初期化
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAreaTabs);
+            } else {
+                // すでに読み込まれている場合はすぐに実行
+                initAreaTabs();
+            }
+
+            // WordPress環境での遅延読み込み対応
+            // ページが完全に読み込まれた後にも再度実行
+            window.addEventListener('load', function() {
+                console.log('ページ読み込み完了後の再初期化');
+                setTimeout(initAreaTabs, 100);
+            });
+        })();
+    </script>
+</body>
+</html>
