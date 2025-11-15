@@ -66,6 +66,11 @@ class Umaten_Toppage_Shortcode {
      * ショートコードのレンダリング
      */
     public function render_shortcode($atts) {
+        // 【v2.7.0修正】記事ページ（single.php）では何も表示しない
+        if (is_single() || is_singular('post')) {
+            return '';
+        }
+
         // スクリプトとスタイルをエンキュー
         wp_enqueue_style('umaten-toppage-style');
         wp_enqueue_script('umaten-toppage-script');
