@@ -30,7 +30,7 @@ log_warning() {
 
 # 定数定義
 PLUGIN_VERSION="2.8.0"
-PLUGIN_NAME="umaten-toppage-v2.7"
+PLUGIN_NAME="umaten-toppage-v2.8"
 GITHUB_REPO="inosuke680-sys/toppage-WP-INSIDE-"
 GITHUB_BRANCH="claude/plugin-v2.6.0-upgrade-015K3j6rBvErzVhU5LxoG5Vj"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}"
