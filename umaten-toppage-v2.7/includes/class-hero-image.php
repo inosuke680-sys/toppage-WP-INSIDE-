@@ -9,6 +9,7 @@
  * - WordPressフィルターフックを使用してSWELLテーマと完全互換
  * - has_post_thumbnail()、get_the_post_thumbnail_url()でもヒーロー画像を取得可能
  * - 標準的なWordPress関数での取得に完全対応
+ * - 記事ページではアイキャッチを表示しない（本文のヒーロー画像と重複防止）
  */
 
 // 直接アクセスを防止
@@ -70,9 +71,33 @@ class Umaten_Toppage_Hero_Image {
     }
 
     /**
+     * 【v2.7.0改善】一覧ページかどうかを判定
+     * 記事ページ（single.php）ではアイキャッチを表示しない
+     */
+    private function should_show_thumbnail() {
+        // 記事ページでは表示しない（本文にヒーロー画像があるため重複防止）
+        if (is_single() || is_singular('post')) {
+            return false;
+        }
+
+        // 管理画面では表示しない
+        if (is_admin()) {
+            return false;
+        }
+
+        // 一覧ページ、アーカイブページ、検索結果ページでは表示
+        return true;
+    }
+
+    /**
      * 【v2.7.0新機能】post_thumbnail_htmlフィルター - サムネイルHTMLを生成
      */
     public function filter_post_thumbnail_html($html, $post_id, $post_thumbnail_id, $size, $attr) {
+        // 【v2.7.0改善】記事ページでは無効化
+        if (!$this->should_show_thumbnail()) {
+            return $html;
+        }
+
         // 既にHTMLがある場合（実際のアイキャッチ画像がある場合）はそのまま返す
         if (!empty($html)) {
             return $html;
@@ -119,6 +144,11 @@ class Umaten_Toppage_Hero_Image {
             return $value;
         }
 
+        // 【v2.7.0改善】記事ページでは無効化
+        if (!$this->should_show_thumbnail()) {
+            return $value;
+        }
+
         // 既にサムネイルIDがある場合はそのまま返す
         $existing_thumbnail_id = get_post_meta($object_id, '_thumbnail_id', true);
         if (!empty($existing_thumbnail_id)) {
@@ -150,6 +180,11 @@ class Umaten_Toppage_Hero_Image {
     public function filter_attachment_image_src($image, $attachment_id, $size, $icon) {
         // 疑似サムネイルIDでない場合は処理しない
         if (!is_string($attachment_id) || strpos($attachment_id, self::PSEUDO_THUMBNAIL_PREFIX) !== 0) {
+            return $image;
+        }
+
+        // 【v2.7.0改善】記事ページでは無効化
+        if (!$this->should_show_thumbnail()) {
             return $image;
         }
 
