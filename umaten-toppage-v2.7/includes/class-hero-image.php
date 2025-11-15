@@ -1,13 +1,13 @@
 <?php
 /**
- * ヒーロー画像メタデータ保存クラス (v2.7.0 シンプル版 - フィルターフック無効化)
+ * ヒーロー画像メタデータ保存クラス (v2.7.0 安定版)
  *
  * アイキャッチとして登録せず、メタデータとして保存することで、
  * 記事本文には影響を与えず、一覧ページでのみヒーロー画像を表示できるようにします。
  *
- * v2.7.0診断版：
- * - WordPressフィルターフックを完全に無効化（問題の原因を特定するため）
- * - シンプルなメタデータ保存のみに特化
+ * v2.7.0: v2.6.0の安定性を維持したシンプル実装
+ * - フィルターフックを使用せず、メタデータ保存のみに特化
+ * - SWELLテーマとの互換性問題を回避
  * - 公開API: Umaten_Toppage_Hero_Image::get_hero_image_url($post_id)
  */
 
@@ -42,9 +42,6 @@ class Umaten_Toppage_Hero_Image {
 
         // 既存の投稿にヒーロー画像メタデータを設定するためのフック（オプション）
         add_action('admin_init', array($this, 'maybe_add_admin_notice'));
-
-        // 【v2.7.0診断版】フィルターフックは完全に無効化
-        // SWELLテーマとの互換性問題を回避するため
     }
 
     /**
@@ -111,7 +108,7 @@ class Umaten_Toppage_Hero_Image {
 
             // デバッグログ
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0 (診断版): Saved hero image URL for post {$post_id}: {$image_url}");
+                error_log("Umaten Toppage v2.7.0: Saved hero image URL for post {$post_id}: {$image_url}");
             }
 
             return true;

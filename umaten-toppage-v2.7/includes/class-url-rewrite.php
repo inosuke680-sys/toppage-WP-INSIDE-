@@ -1,12 +1,12 @@
 <?php
 /**
- * URLリライトルールクラス (v2.7.0 記事ページ完全表示版)
+ * URLリライトルールクラス (v2.7.0 記事ページ完全修正版)
  * 投稿を検出したら必ず表示する（管理画面・REST API・AJAXでは無効）
  *
- * v2.7.0改善点：
- * - 投稿が見つかった場合は、カテゴリチェックを完全にスキップして必ず表示
- * - デバッグログを強化して問題の特定を容易に
- * - リダイレクト問題を完全に修正
+ * v2.7.0完全修正：
+ * - カテゴリチェックを完全に削除し、投稿が見つかった場合は無条件に表示
+ * - 記事ページがトップページにリダイレクトされる問題を完全解決
+ * - v2.6.0の安定性を維持しつつ、リダイレクト問題のみを修正
  */
 
 // 直接アクセスを防止
@@ -43,7 +43,7 @@ class Umaten_Toppage_URL_Rewrite {
      * 404エラー時のカスタムリダイレクト処理
      */
     public function handle_404_redirect() {
-        // 【v2.7.0】フロントエンドのページリクエストのみ処理
+        // 【v2.5.0 最重要】フロントエンドのページリクエストのみ処理
         if (!$this->is_frontend_request()) {
             return;
         }
@@ -61,11 +61,6 @@ class Umaten_Toppage_URL_Rewrite {
         global $wp;
         $current_path = trim($wp->request, '/');
 
-        // デバッグログ
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Processing 404 for path: {$current_path}");
-        }
-
         // パスが空の場合は処理しない
         if (empty($current_path)) {
             return;
@@ -76,9 +71,6 @@ class Umaten_Toppage_URL_Rewrite {
 
         // 2段階または3段階のパスのみ処理
         if (count($parts) < 2 || count($parts) > 3) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0: Path has " . count($parts) . " parts, skipping (need 2 or 3)");
-            }
             return;
         }
 
@@ -86,21 +78,17 @@ class Umaten_Toppage_URL_Rewrite {
         $child_slug = isset($parts[1]) ? $parts[1] : '';
         $tag_slug = isset($parts[2]) ? $parts[2] : '';
 
-        // 【v2.7.0完全修正】投稿の存在をチェックし、見つかったら必ず表示する
+        // 【v2.7.0完全修正】投稿の存在をチェックし、見つかったら無条件に表示する
         // 2段階URL（/親/投稿名/）の場合
         if (count($parts) == 2) {
             $post = $this->find_post_by_slug($child_slug);
             if ($post) {
                 // 【v2.7.0完全修正】投稿が見つかった場合は、カテゴリチェックなしで必ず表示
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("Umaten Toppage v2.7.0: Found post by slug '{$child_slug}' (ID: {$post->ID}, Title: {$post->post_title}) - displaying without category check");
+                    error_log("Umaten Toppage v2.7.0: Found post '{$child_slug}' (ID: {$post->ID}) - displaying without category check");
                 }
                 $this->setup_single_post_query($post);
                 return;
-            } else {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("Umaten Toppage v2.7.0: No post found for slug '{$child_slug}'");
-                }
             }
         }
 
@@ -111,43 +99,30 @@ class Umaten_Toppage_URL_Rewrite {
             if ($post) {
                 // 【v2.7.0完全修正】投稿が見つかった場合は、カテゴリチェックなしで必ず表示
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("Umaten Toppage v2.7.0: Found post by slug '{$tag_slug}' (ID: {$post->ID}, Title: {$post->post_title}) - displaying without category check");
+                    error_log("Umaten Toppage v2.7.0: Found post '{$tag_slug}' (ID: {$post->ID}) - displaying without category check");
                 }
                 $this->setup_single_post_query($post);
                 return;
-            } else {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("Umaten Toppage v2.7.0: No post found for slug '{$tag_slug}'");
-                }
             }
         }
 
-        // 投稿が存在しない場合、カテゴリやタグの存在を確認
+        // 投稿が存在しない場合、カテゴリやタグのアーカイブページとして処理
+        // カテゴリやタグの存在を確認
         $parent_term = get_term_by('slug', $parent_slug, 'category');
         $child_term = get_term_by('slug', $child_slug, 'category');
         $tag_term = !empty($tag_slug) ? get_term_by('slug', $tag_slug, 'post_tag') : null;
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Checking for archive - Parent: " . ($parent_term ? $parent_term->name : 'none') . ", Child: " . ($child_term ? $child_term->name : 'none') . ", Tag: " . ($tag_term ? $tag_term->name : 'none'));
-        }
-
         // カテゴリまたはタグが存在しない場合は通常の404を返す
         if (!$parent_term && !$child_term && !$tag_term) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0: No category or tag found, returning 404");
-            }
             return;
         }
 
         // カテゴリ/タグが存在する場合、アーカイブページとして処理
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Setting up archive page");
-        }
         $this->setup_archive_query($parent_term, $child_term, $tag_term);
     }
 
     /**
-     * 【v2.7.0】フロントエンドのページリクエストかどうかを判定
+     * 【v2.5.0 新機能】フロントエンドのページリクエストかどうかを判定
      *
      * @return bool フロントエンドのページリクエストの場合true
      */
@@ -218,7 +193,7 @@ class Umaten_Toppage_URL_Rewrite {
     }
 
     /**
-     * 【v2.7.0完全修正版】投稿ページとして表示するクエリをセットアップ
+     * 【v2.7.0 完全修正版】投稿ページとして表示するクエリをセットアップ
      *
      * @param WP_Post $post 投稿オブジェクト
      */
@@ -240,7 +215,7 @@ class Umaten_Toppage_URL_Rewrite {
         // 新しいクエリで上書き
         $wp_query = new WP_Query($args);
 
-        // 【v2.7.0重要】メインクエリも同期
+        // 【v2.6.0 重要】メインクエリも同期
         $wp_the_query = $wp_query;
 
         // 404状態を解除し、投稿ページとして設定
@@ -251,10 +226,9 @@ class Umaten_Toppage_URL_Rewrite {
         $wp_query->is_home = false;
         $wp_query->is_category = false;
         $wp_query->is_tag = false;
-        $wp_query->is_search = false;
         status_header(200);
 
-        // 【v2.7.0改善】グローバル$postの設定を安全に行う
+        // 【v2.6.0 改善】グローバル$postの設定を安全に行う
         // the_post()を呼び出して、WordPressの標準的な方法で設定
         if ($wp_query->have_posts()) {
             $wp_query->the_post();
@@ -262,7 +236,7 @@ class Umaten_Toppage_URL_Rewrite {
             // デバッグログ
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 global $post;
-                error_log("Umaten Toppage v2.7.0: Post loaded successfully - ID: " . $post->ID . ", Title: " . $post->post_title . ", Content length: " . strlen($post->post_content));
+                error_log("Umaten Toppage v2.6.0: Post loaded successfully - ID: " . $post->ID . ", Title: " . $post->post_title);
             }
         }
 
@@ -336,7 +310,7 @@ class Umaten_Toppage_URL_Rewrite {
     }
 
     /**
-     * 【v2.7.0】投稿ページテンプレートをロード
+     * 【v2.5.0】投稿ページテンプレートをロード
      */
     public function load_single_template($template) {
         // umaten_is_single_postフラグがある場合のみ投稿テンプレートを使用
@@ -350,7 +324,7 @@ class Umaten_Toppage_URL_Rewrite {
         if ($single_template) {
             // デバッグログ
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0: Loading single template - " . $single_template);
+                error_log("Umaten Toppage v2.5.0: Loading single template - " . $single_template);
             }
             return $single_template;
         }
@@ -371,9 +345,6 @@ class Umaten_Toppage_URL_Rewrite {
         $custom_template = locate_template(array('archive.php', 'index.php'));
 
         if ($custom_template) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0: Loading archive template - " . $custom_template);
-            }
             return $custom_template;
         }
 
@@ -384,7 +355,7 @@ class Umaten_Toppage_URL_Rewrite {
      * リライトルールをフラッシュ（プラグイン有効化時）
      */
     public static function flush_rewrite_rules() {
-        // v2.7.0では特別なリライトルールを追加しないため、
+        // v2.5.0では特別なリライトルールを追加しないため、
         // 通常のフラッシュのみ実行
         flush_rewrite_rules();
     }

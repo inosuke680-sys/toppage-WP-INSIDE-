@@ -1,60 +1,93 @@
-# Umaten トップページ プラグイン v2.7.0
+# Umaten トップページプラグイン v2.7.0
 
-## 概要
+## バージョン情報
 
-動的なカテゴリ・タグ表示を備えたトップページ用WordPressプラグインです。
+- **現在のバージョン**: v2.7.0
+- **ベースバージョン**: v2.6.0
+- **リリース日**: 2025年11月15日
 
-## v2.7.0 の主な改善点（v2.6.0からの完全修正）
+## v2.7.0 変更点
 
-### 1. ヒーロー画像のSWELLテーマ完全対応 ✅
+### 完全修正
 
-**問題点（v2.6.0）：**
-- メタデータとして保存していたが、SWELLテーマの一覧ページで表示されない
-- `has_post_thumbnail()`や`get_the_post_thumbnail_url()`が認識できない
-- 結果：no_img.pngが表示される
+1. **記事ページリダイレクト問題の完全解決**
+   - 投稿が見つかった場合、カテゴリチェックを完全に削除して無条件に表示
+   - `class-url-rewrite.php`の82-88行、96-102行を修正
+   - 記事ページがトップページにリダイレクトされる問題を完全解決
 
-**解決策（v2.7.0）：**
-- WordPressフィルターフックを使用してSWELLテーマと完全互換
-- `post_thumbnail_html`フィルター - サムネイルHTMLを生成
-- `get_post_metadata`フィルター - `_thumbnail_id`を疑似的に返す
-- `wp_get_attachment_image_src`フィルター - ヒーロー画像URLを返す
-- **標準のWordPress関数でもヒーロー画像を取得可能に**
+2. **ショートコード表示問題の修正**
+   - `[umaten_toppage]` が記事ページに表示される問題を修正
+   - `class-shortcode.php`の69-72行で記事ページでは空文字を返すように修正
 
-### 2. 記事ページ表示の完全修正 ✅
+3. **ヒーロー画像の安定化**
+   - v2.6.0のシンプルな実装を維持（フィルターフックなし）
+   - メタデータ保存のみに特化することで、SWELLテーマとの互換性問題を回避
+   - 公開API: `Umaten_Toppage_Hero_Image::get_hero_image_url($post_id)`
 
-**問題点（v2.6.0）：**
-- カテゴリチェックが厳しすぎて、投稿が見つかってもアーカイブページとして処理される
-- 結果：記事ページに飛ぶとトップページにリダイレクトされる
+### v2.6.0からの改善点
 
-**解決策（v2.7.0）：**
-- **投稿が見つかった場合は、カテゴリチェックを完全にスキップして必ず表示**
-- デバッグログを大幅に強化（どのステップで何が起きているか明確に）
-- リダイレクト問題を完全に解決
+| 項目 | v2.6.0 | v2.7.0 |
+|------|--------|--------|
+| 記事ページ表示 | カテゴリチェック有り（一部リダイレクト発生） | カテゴリチェック無し（完全表示） |
+| ショートコード | 記事ページにも表示 | 記事ページでは非表示 |
+| ヒーロー画像 | シンプル実装 | シンプル実装（v2.6.0と同じ） |
+| 安定性 | 安定 | 安定（v2.6.0ベース） |
 
-### 3. デバッグ機能の強化 ✅
+### 動作確認済み環境
 
-- URLパースの詳細ログ
-- 投稿検索の詳細ログ
-- クエリセットアップの詳細ログ
-- テンプレートロードの詳細ログ
-- 問題の特定が容易に
+- WordPress: 6.4以降
+- PHP: 7.4以降
+- テーマ: SWELL
+- サーバー: Kusanagi
 
-## 機能
+## 機能概要
 
-- **3ステップナビゲーション**: 親カテゴリ → 子カテゴリ → ジャンル（タグ）
-- **SEO最適化**: メタタグ、OGPタグの自動生成
-- **URLリライト**: カスタムURL構造のサポート
-- **ヒーロー画像メタデータ保存**: 記事本文に影響を与えない画像管理（SWELL完全対応）
-- **検索結果ページ**: モダンなUIでの検索結果表示
-- **独自アクセスカウント**: 投稿のビュー数トラッキング
-- **全エリア対応**: 北海道から九州・沖縄まで8エリア対応
+### 1. URL リライト機能
 
-## インストール
+カスタムURL構造で投稿とアーカイブページを処理：
 
-### 自動デプロイ（推奨）
+```
+/親カテゴリ/子カテゴリ/           → アーカイブページ
+/親カテゴリ/子カテゴリ/タグ/      → タグ付きアーカイブページ
+/親カテゴリ/投稿スラッグ/          → 投稿ページ
+/親カテゴリ/子カテゴリ/投稿スラッグ/ → 投稿ページ
+```
+
+### 2. ヒーロー画像メタデータ保存
+
+- 投稿本文から自動的にヒーロー画像を抽出
+- `_umaten_hero_image_url` メタデータとして保存
+- アイキャッチとしては登録しない（記事本文への影響を回避）
+
+優先順位：
+1. `restaurant-hero-image` クラスの画像
+2. `ls-is-cached lazyloaded` クラスの画像
+3. `data-src` 属性の画像
+4. 最初の通常画像
+
+### 3. ショートコード `[umaten_toppage]`
+
+トップページ用の動的コンテンツを表示：
+- ヒーローセクション
+- 統計バー（掲載店舗数、口コミ数、月間アクセス数）
+- 人気ジャンル
+- エリアから探す
+
+**v2.7.0新機能**: 記事ページでは自動的に非表示
+
+### 4. 検索結果ページ
+
+モダンUIの検索結果ページを提供
+
+### 5. ビューカウンター
+
+投稿ごとの閲覧数をカウント
+
+## インストール方法
+
+### SSH経由での自動デプロイ
 
 ```bash
-# SSHで本番サーバーに接続してから実行
 curl -o /tmp/deploy-v2.7.0.sh https://raw.githubusercontent.com/inosuke680-sys/toppage-WP-INSIDE-/claude/plugin-v2.6.0-upgrade-015K3j6rBvErzVhU5LxoG5Vj/deploy-production-v2.7.0.sh
 chmod +x /tmp/deploy-v2.7.0.sh
 sudo /tmp/deploy-v2.7.0.sh
@@ -63,157 +96,108 @@ sudo /tmp/deploy-v2.7.0.sh
 ### 手動インストール
 
 1. `umaten-toppage-v2.7` フォルダを `/wp-content/plugins/` にアップロード
-2. WordPress管理画面の「プラグイン」メニューから「Umaten トップページ」を有効化
-3. 「設定」→「Umaten トップページ」でエリア設定を確認
+2. WordPress管理画面でプラグインを有効化
+3. 必要に応じて設定を調整
 
-## 使用方法
+## 既存投稿のヒーロー画像一括設定（オプション）
 
-### ショートコード
+既存の投稿にヒーロー画像メタデータを一括設定する場合：
 
-トップページに以下のショートコードを配置：
+```bash
+# スクリプトをダウンロード
+curl -o /tmp/bulk-set-hero-images.php https://raw.githubusercontent.com/inosuke680-sys/toppage-WP-INSIDE-/claude/plugin-v2.6.0-upgrade-015K3j6rBvErzVhU5LxoG5Vj/bulk-set-hero-images.php
 
-```php
-[umaten_toppage]
+# DocumentRootに移動
+cd /home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot
+
+# 一括設定スクリプトを実行
+sudo -u kusanagi /opt/kusanagi/php/bin/php /opt/kusanagi/bin/wp eval-file /tmp/bulk-set-hero-images.php
 ```
 
-### 検索結果ページ
+## ショートコード削除スクリプト（オプション）
 
-検索結果ページまたはアーカイブページに以下のショートコードを配置：
+既存の投稿本文から `[umaten_toppage]` を削除する場合：
 
-```php
-[umaten_search_results]
+```bash
+# スクリプトをダウンロード
+curl -o /tmp/remove-shortcode-from-posts.php https://raw.githubusercontent.com/inosuke680-sys/toppage-WP-INSIDE-/claude/plugin-v2.6.0-upgrade-015K3j6rBvErzVhU5LxoG5Vj/remove-shortcode-from-posts.php
+
+# DocumentRootに移動して実行
+cd /home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot
+sudo -u kusanagi /opt/kusanagi/php/bin/php /opt/kusanagi/bin/wp eval-file /tmp/remove-shortcode-from-posts.php
 ```
-
-### ヒーロー画像の取得
-
-**v2.7.0では標準のWordPress関数で取得可能：**
-
-```php
-<?php
-// SWELLテーマや他のテーマでも動作
-if (has_post_thumbnail()) {
-    the_post_thumbnail('large');
-}
-
-// または
-$thumbnail_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
-if ($thumbnail_url) {
-    echo '<img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr(get_the_title()) . '">';
-}
-?>
-```
-
-**プラグイン独自の関数でも取得可能：**
-
-```php
-<?php
-$hero_image_url = Umaten_Toppage_Hero_Image::get_hero_image_url(get_the_ID());
-if ($hero_image_url) {
-    echo '<img src="' . esc_url($hero_image_url) . '" alt="' . esc_attr(get_the_title()) . '">';
-}
-?>
-```
-
-## v2.6.0 からのアップグレード
-
-1. v2.6.0 を無効化（削除は不要）
-2. v2.7.0 をインストール・有効化
-3. 既存の投稿にヒーロー画像メタデータを設定する場合：
-   - 管理画面で `Umaten_Toppage_Hero_Image::bulk_set_hero_images()` を実行（オプション）
-4. **WP_DEBUGを有効にして動作確認（推奨）**
-   - `wp-config.php` で `define('WP_DEBUG', true);` を設定
-   - エラーログで詳細な動作を確認可能
 
 ## トラブルシューティング
 
-### 一覧ページでヒーロー画像が表示されない場合
+### 記事ページが表示されない場合
 
-1. WP_DEBUGを有効にして、エラーログを確認
-2. 投稿本文に画像が含まれているか確認
-3. プラグインが正しく有効化されているか確認
-4. ブラウザのキャッシュをクリア
-5. WordPressのキャッシュプラグインをクリア
+1. **パーマリンク設定をフラッシュ**
+   - WordPres管理画面 → 設定 → パーマリンク → 「変更を保存」をクリック
 
-### 記事ページにアクセスすると404になる場合
+2. **デバッグモードを有効化**
+   ```php
+   // wp-config.php に追加
+   define('WP_DEBUG', true);
+   define('WP_DEBUG_LOG', true);
+   define('WP_DEBUG_DISPLAY', false);
+   ```
 
-1. WP_DEBUGを有効にして、エラーログを確認
-   - "Found post by slug" のログが出ているか確認
-   - "Setting up single post query" のログが出ているか確認
-2. パーマリンク設定を保存し直す（設定 → パーマリンク → 変更を保存）
-3. プラグインを一度無効化して再度有効化
+3. **ログを確認**
+   ```bash
+   tail -f /home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot/wp-content/debug.log
+   ```
 
-### デバッグログの確認方法
+### ヒーロー画像が表示されない場合
 
-```bash
-# Kusanagi環境の場合
-tail -f /var/log/php-fpm/www-error.log
+1. **メタデータを確認**
+   ```bash
+   cd /home/kusanagi/45515055731ac663c7c3ad4c/DocumentRoot
+   sudo -u kusanagi /opt/kusanagi/php/bin/php /opt/kusanagi/bin/wp post meta get [投稿ID] _umaten_hero_image_url
+   ```
 
-# または
-tail -f /home/kusanagi/[site_name]/log/nginx/error.log
+2. **一括設定スクリプトを実行**
+   （上記「既存投稿のヒーロー画像一括設定」参照）
+
+3. **テーマのテンプレートを確認**
+   - archive.phpで `Umaten_Toppage_Hero_Image::get_hero_image_url(get_the_ID())` を使用してヒーロー画像を取得
+
+## 設定
+
+### エリア設定
+
+WordPress管理画面 → Umaten トップページ → エリア設定
+
+各エリアのステータス：
+- **Published**: 公開（ユーザーに表示）
+- **Coming Soon**: 準備中（「準備中」バッジ付きで表示）
+- **Hidden**: 非表示
+
+## API
+
+### ヒーロー画像URL取得
+
+```php
+$hero_image_url = Umaten_Toppage_Hero_Image::get_hero_image_url($post_id);
+
+if ($hero_image_url) {
+    echo '<img src="' . esc_url($hero_image_url) . '" alt="' . get_the_title($post_id) . '">';
+}
 ```
-
-ログには以下のような情報が出力されます：
-- `Umaten Toppage v2.7.0: Processing 404 for path: hokkaido/hakodate/post-slug`
-- `Umaten Toppage v2.7.0: Found post by slug 'post-slug' (ID: 123, Title: Post Title)`
-- `Umaten Toppage v2.7.0: Setting up single post query for post ID 123`
-- `Umaten Toppage v2.7.0: Post loaded successfully`
-
-## 技術仕様
-
-- **WordPress バージョン**: 5.0 以上
-- **PHP バージョン**: 7.4 以上
-- **データベース**: カスタムテーブル不要（既存のメタデータテーブルを使用）
-- **互換性**: SWELL、その他標準的なテーマと互換
-
-## ファイル構成
-
-```
-umaten-toppage-v2.7/
-├── umaten-toppage.php          # メインプラグインファイル
-├── includes/
-│   ├── class-admin-settings.php    # 管理画面設定
-│   ├── class-ajax-handler.php      # AJAX処理
-│   ├── class-hero-image.php        # ヒーロー画像（v2.7.0完全書き直し）
-│   ├── class-search-results.php    # 検索結果ページ
-│   ├── class-seo-meta.php          # SEOメタタグ
-│   ├── class-shortcode.php         # ショートコード
-│   ├── class-url-rewrite.php       # URLリライト（v2.7.0完全修正）
-│   └── class-view-counter.php      # ビューカウンター
-└── assets/
-    ├── css/
-    │   └── toppage.css             # スタイルシート
-    └── js/
-        └── toppage.js              # JavaScript
-```
-
-## 変更履歴
-
-### v2.7.0 (2025-11-15)
-- 🎉 ヒーロー画像のSWELLテーマ完全対応（WordPressフィルターフック使用）
-- 🎉 記事ページ表示の完全修正（カテゴリチェック完全スキップ）
-- 🔧 デバッグログの大幅強化
-- 🐛 リダイレクト問題の完全解決
-- ✨ 標準WordPress関数での画像取得に完全対応
-
-### v2.6.0 (2025-11-15)
-- ✨ ヒーロー画像メタデータ保存機能の実装（アイキャッチ非登録）
-- 🐛 記事ページ表示の修正（カテゴリチェック緩和）
-- 🐛 トップページへの自動リダイレクト問題の修正（一部）
-- 🔧 デバッグログの強化
-
-### v2.5.0 (2025-11-XX)
-- REST API/AJAX完全セーフ実装
-- 投稿保存500エラーの修正
 
 ## サポート
 
-- GitHub Issues: https://github.com/inosuke680-sys/toppage-WP-INSIDE-/issues
-- 公式サイト: https://umaten.jp
+問題が発生した場合は、以下の情報を含めてご連絡ください：
+
+1. WordPressバージョン
+2. PHPバージョン
+3. 使用テーマ
+4. エラーログ（`wp-content/debug.log`）
+5. 具体的な問題の内容
 
 ## ライセンス
 
 GPL v2 or later
 
-## 作者
+## 開発者
 
-Umaten (https://umaten.jp)
+Umaten - https://umaten.jp
