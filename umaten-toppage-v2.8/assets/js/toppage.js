@@ -334,6 +334,9 @@
             const $grid = $('#tags-grid');
             $grid.empty();
 
+            // デバッグログ
+            console.log('[v2.8.0] renderTags called - Parent:', self.currentParentSlug, ', Child:', self.currentChildSlug, ', Tags:', tags.length);
+
             if (tags.length === 0) {
                 $grid.html(`
                     <div class="meshimap-coming-soon">
@@ -345,44 +348,61 @@
                 return;
             }
 
+            // 【v2.8.0修正】currentParentSlugとcurrentChildSlugの検証
+            if (!self.currentParentSlug || !self.currentChildSlug) {
+                console.error('[v2.8.0] ERROR: currentParentSlug or currentChildSlug is empty!');
+                $grid.html(`
+                    <div class="meshimap-coming-soon">
+                        <div class="meshimap-coming-soon-icon">&#9888;</div>
+                        <h3 class="meshimap-coming-soon-title">エラー</h3>
+                        <p class="meshimap-coming-soon-text">親カテゴリまたは子カテゴリが設定されていません。最初からやり直してください。</p>
+                    </div>
+                `);
+                return;
+            }
+
             // 「すべてのジャンル」ボタンを最初に追加
+            const allGenresUrl = umatenToppage.siteUrl + '/' + self.currentParentSlug + '/' + self.currentChildSlug + '/';
+            console.log('[v2.8.0] All genres URL:', allGenresUrl);
+
             const $allGenresItem = $('<a>')
-                .attr('href', '#')
+                .attr('href', allGenresUrl)
                 .addClass('meshimap-tag-item meshimap-tag-item-all')
                 .html('🍴 すべてのジャンル')
-                .attr('data-tag-slug', '');
+                .attr('data-tag-slug', '')
+                .attr('data-full-url', allGenresUrl);
 
             $allGenresItem.on('click', function(e) {
-                e.preventDefault();
-                console.log('すべてのジャンルがクリックされました');
-                // タグなしのURL: /hokkaido/子カテゴリ/
-                const finalUrl = umatenToppage.siteUrl + '/' +
-                                 self.currentParentSlug + '/' +
-                                 self.currentChildSlug + '/';
-                console.log('最終URLに遷移:', finalUrl);
-                window.location.href = finalUrl;
+                console.log('[v2.8.0] すべてのジャンルクリック - URL:', allGenresUrl);
+                // デフォルトのリンク動作を許可（href属性で遷移）
+                // e.preventDefault()は削除
             });
 
             $grid.append($allGenresItem);
 
             // 各ジャンルを追加
             $.each(tags, function(index, tag) {
+                // 【v2.8.0修正】実際のURLを生成してhref属性に設定
+                const tagUrl = umatenToppage.siteUrl + '/' + self.currentParentSlug + '/' + self.currentChildSlug + '/' + tag.slug + '/';
+                console.log('[v2.8.0] Tag URL generated:', tag.name, '->', tagUrl);
+
                 const $tagItem = $('<a>')
-                    .attr('href', '#')
+                    .attr('href', tagUrl)
                     .addClass('meshimap-tag-item')
                     .text(tag.name)
-                    .attr('data-tag-slug', tag.slug);
+                    .attr('data-tag-slug', tag.slug)
+                    .attr('data-full-url', tagUrl);
 
                 $tagItem.on('click', function(e) {
-                    e.preventDefault();
-                    console.log('タグがクリックされました:', tag.slug);
-                    self.navigateToFinalUrl(tag.slug);
+                    console.log('[v2.8.0] タグクリック:', tag.name, ', URL:', tagUrl);
+                    // デフォルトのリンク動作を許可（href属性で遷移）
+                    // e.preventDefault()は削除
                 });
 
                 $grid.append($tagItem);
             });
 
-            console.log('タグを', tags.length, '件レンダリングしました（すべてのジャンルを含む）');
+            console.log('[v2.8.0] タグを', tags.length, '件レンダリングしました（すべてのジャンルを含む）');
         },
 
         /**
