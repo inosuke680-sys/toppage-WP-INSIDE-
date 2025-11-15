@@ -1,0 +1,89 @@
+/**
+ * WP Hero Image Manager - Admin Styles
+ * Version: 2.8.4
+ *
+ * @package WP_Hero_Image_Manager
+ */
+
+.wp-hero-image-manager-meta-box {
+    padding: 0;
+}
+
+.wp-hero-image-manager-meta-box p {
+    margin: 0 0 12px 0;
+}
+
+.wp-hero-image-manager-meta-box label {
+    display: inline-block;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.wp-hero-image-manager-meta-box input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.hero-image-container {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.hero-image-preview {
+    margin-bottom: 10px;
+    min-height: 50px;
+    text-align: center;
+}
+
+.hero-image-preview img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    padding: 5px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+}
+
+.hero-image-preview:empty {
+    display: none;
+}
+
+#select_hero_image_button,
+#remove_hero_image_button {
+    margin-right: 5px;
+}
+
+#remove_hero_image_button {
+    color: #b32d2e;
+}
+
+#remove_hero_image_button:hover {
+    color: #dc3232;
+    border-color: #dc3232;
+}
+
+.wp-hero-image-manager-meta-box .description {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #646970;
+    background: #f0f6fc;
+    padding: 10px;
+    border-left: 3px solid #2271b1;
+    margin-top: 15px;
+}
+
+/* 管理画面のレスポンシブ対応 */
+@media screen and (max-width: 782px) {
+    .wp-hero-image-manager-meta-box {
+        padding: 12px;
+    }
+
+    #select_hero_image_button,
+    #remove_hero_image_button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+    }
+}
