@@ -1,14 +1,13 @@
 <?php
 /**
- * ヒーロー画像メタデータ保存クラス (v2.7.0 SWELL完全対応版)
+ * ヒーロー画像メタデータ保存クラス (v2.7.0 緊急修正版 - 無限ループ解消)
  *
  * アイキャッチとして登録せず、メタデータとして保存することで、
  * 記事本文には影響を与えず、一覧ページでのみヒーロー画像を表示できるようにします。
  *
- * v2.7.0新機能：
- * - WordPressフィルターフックを使用してSWELLテーマと完全互換
- * - has_post_thumbnail()、get_the_post_thumbnail_url()でもヒーロー画像を取得可能
- * - 標準的なWordPress関数での取得に完全対応
+ * v2.7.0緊急修正：
+ * - 無限ループの完全解消（get_post_metaの直接呼び出しを排除）
+ * - データベース直接クエリによる安全なメタデータ取得
  * - 記事ページではアイキャッチを表示しない（本文のヒーロー画像と重複防止）
  */
 
@@ -30,6 +29,11 @@ class Umaten_Toppage_Hero_Image {
     const PSEUDO_THUMBNAIL_PREFIX = 'umaten_hero_';
 
     /**
+     * 再帰防止フラグ
+     */
+    private $processing_thumbnail_id = false;
+
+    /**
      * シングルトンインスタンスを取得
      */
     public static function get_instance() {
@@ -49,14 +53,15 @@ class Umaten_Toppage_Hero_Image {
         // 既存の投稿にヒーロー画像メタデータを設定するためのフック（オプション）
         add_action('admin_init', array($this, 'maybe_add_admin_notice'));
 
-        // 【v2.7.0新機能】WordPressフィルターフックを使用してSWELLテーマと互換性を実現
-        $this->init_theme_compatibility_hooks();
+        // 【v2.7.0修正版】WordPressフィルターフックを使用してSWELLテーマと互換性を実現
+        // wpアクションの後に初期化（クエリ関数が利用可能になってから）
+        add_action('wp', array($this, 'init_theme_compatibility_hooks'), 1);
     }
 
     /**
-     * 【v2.7.0新機能】テーマ互換性フックの初期化
+     * 【v2.7.0修正版】テーマ互換性フックの初期化
      */
-    private function init_theme_compatibility_hooks() {
+    public function init_theme_compatibility_hooks() {
         // post_thumbnail_htmlフィルター - サムネイルHTMLを生成
         add_filter('post_thumbnail_html', array($this, 'filter_post_thumbnail_html'), 10, 5);
 
@@ -71,10 +76,16 @@ class Umaten_Toppage_Hero_Image {
     }
 
     /**
-     * 【v2.7.0改善】一覧ページかどうかを判定
+     * 【v2.7.0修正版】一覧ページかどうかを判定（安全版）
      * 記事ページ（single.php）ではアイキャッチを表示しない
      */
     private function should_show_thumbnail() {
+        // グローバルクエリが準備されていない場合は安全にfalseを返す
+        global $wp_query;
+        if (!isset($wp_query) || !is_object($wp_query)) {
+            return false;
+        }
+
         // 記事ページでは表示しない（本文にヒーロー画像があるため重複防止）
         if (is_single() || is_singular('post')) {
             return false;
@@ -87,6 +98,21 @@ class Umaten_Toppage_Hero_Image {
 
         // 一覧ページ、アーカイブページ、検索結果ページでは表示
         return true;
+    }
+
+    /**
+     * 【v2.7.0修正版】データベースから直接メタデータを取得（無限ループ防止）
+     */
+    private function get_meta_directly($post_id, $meta_key) {
+        global $wpdb;
+
+        $value = $wpdb->get_var($wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s LIMIT 1",
+            $post_id,
+            $meta_key
+        ));
+
+        return $value;
     }
 
     /**
@@ -103,8 +129,8 @@ class Umaten_Toppage_Hero_Image {
             return $html;
         }
 
-        // ヒーロー画像URLを取得
-        $hero_image_url = get_post_meta($post_id, '_umaten_hero_image_url', true);
+        // ヒーロー画像URLを直接取得（無限ループ防止）
+        $hero_image_url = $this->get_meta_directly($post_id, '_umaten_hero_image_url');
 
         if (empty($hero_image_url)) {
             return $html;
@@ -112,7 +138,7 @@ class Umaten_Toppage_Hero_Image {
 
         // デバッグログ
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Generating thumbnail HTML for post {$post_id} from hero image URL: {$hero_image_url}");
+            error_log("Umaten Toppage v2.7.0 (修正版): Generating thumbnail HTML for post {$post_id} from hero image URL: {$hero_image_url}");
         }
 
         // サムネイルHTMLを生成
@@ -136,11 +162,16 @@ class Umaten_Toppage_Hero_Image {
     }
 
     /**
-     * 【v2.7.0新機能】get_post_metadataフィルター - _thumbnail_idを疑似的に返す
+     * 【v2.7.0修正版】get_post_metadataフィルター - _thumbnail_idを疑似的に返す（無限ループ防止）
      */
     public function filter_thumbnail_id($value, $object_id, $meta_key, $single) {
         // _thumbnail_id以外は処理しない
         if ($meta_key !== '_thumbnail_id') {
+            return $value;
+        }
+
+        // 再帰防止
+        if ($this->processing_thumbnail_id) {
             return $value;
         }
 
@@ -149,14 +180,21 @@ class Umaten_Toppage_Hero_Image {
             return $value;
         }
 
-        // 既にサムネイルIDがある場合はそのまま返す
-        $existing_thumbnail_id = get_post_meta($object_id, '_thumbnail_id', true);
+        // 再帰防止フラグをオン
+        $this->processing_thumbnail_id = true;
+
+        // 既にサムネイルIDがある場合はそのまま返す（データベース直接クエリ）
+        $existing_thumbnail_id = $this->get_meta_directly($object_id, '_thumbnail_id');
         if (!empty($existing_thumbnail_id)) {
+            $this->processing_thumbnail_id = false;
             return $value;
         }
 
-        // ヒーロー画像URLを取得
-        $hero_image_url = get_post_meta($object_id, '_umaten_hero_image_url', true);
+        // ヒーロー画像URLを取得（データベース直接クエリ）
+        $hero_image_url = $this->get_meta_directly($object_id, '_umaten_hero_image_url');
+
+        // 再帰防止フラグをオフ
+        $this->processing_thumbnail_id = false;
 
         if (empty($hero_image_url)) {
             return $value;
@@ -167,7 +205,7 @@ class Umaten_Toppage_Hero_Image {
 
         // デバッグログ
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Returning pseudo thumbnail ID '{$pseudo_id}' for post {$object_id}");
+            error_log("Umaten Toppage v2.7.0 (修正版): Returning pseudo thumbnail ID '{$pseudo_id}' for post {$object_id}");
         }
 
         // singleがtrueの場合は文字列、falseの場合は配列で返す
@@ -191,8 +229,8 @@ class Umaten_Toppage_Hero_Image {
         // 投稿IDを抽出
         $post_id = str_replace(self::PSEUDO_THUMBNAIL_PREFIX, '', $attachment_id);
 
-        // ヒーロー画像URLを取得
-        $hero_image_url = get_post_meta($post_id, '_umaten_hero_image_url', true);
+        // ヒーロー画像URLを取得（データベース直接クエリ）
+        $hero_image_url = $this->get_meta_directly($post_id, '_umaten_hero_image_url');
 
         if (empty($hero_image_url)) {
             return $image;
@@ -200,7 +238,7 @@ class Umaten_Toppage_Hero_Image {
 
         // デバッグログ
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Umaten Toppage v2.7.0: Returning hero image URL for pseudo attachment ID '{$attachment_id}': {$hero_image_url}");
+            error_log("Umaten Toppage v2.7.0 (修正版): Returning hero image URL for pseudo attachment ID '{$attachment_id}': {$hero_image_url}");
         }
 
         // 画像情報を返す（URL、幅、高さ、isIntermediateサイズ）
@@ -244,7 +282,7 @@ class Umaten_Toppage_Hero_Image {
         }
 
         // 既にヒーロー画像メタデータが設定されている場合はスキップ
-        $existing_hero_image = get_post_meta($post_id, '_umaten_hero_image_url', true);
+        $existing_hero_image = $this->get_meta_directly($post_id, '_umaten_hero_image_url');
         if (!empty($existing_hero_image)) {
             return;
         }
@@ -288,7 +326,7 @@ class Umaten_Toppage_Hero_Image {
 
             // デバッグログ
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Umaten Toppage v2.7.0: Saved hero image URL for post {$post_id}: {$image_url}");
+                error_log("Umaten Toppage v2.7.0 (修正版): Saved hero image URL for post {$post_id}: {$image_url}");
             }
 
             return true;
@@ -304,8 +342,10 @@ class Umaten_Toppage_Hero_Image {
      * @return string|false ヒーロー画像URLまたはfalse
      */
     public static function get_hero_image_url($post_id) {
-        // まずメタデータから取得
-        $hero_image_url = get_post_meta($post_id, '_umaten_hero_image_url', true);
+        $instance = self::get_instance();
+
+        // まずメタデータから取得（データベース直接クエリ）
+        $hero_image_url = $instance->get_meta_directly($post_id, '_umaten_hero_image_url');
 
         if (!empty($hero_image_url)) {
             return esc_url($hero_image_url);
