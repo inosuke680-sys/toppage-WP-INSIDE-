@@ -53,6 +53,7 @@ POSSIBLE_PATHS=(
     "/usr/share/nginx/html"
     "/home/*/public_html"
     "/var/www/vhosts/*/httpdocs"
+    "/home/kusanagi/*/DocumentRoot"
 )
 
 # バナー表示
